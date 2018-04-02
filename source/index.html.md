@@ -1,15 +1,11 @@
 ---
-title: API Reference
+title: Documentação da API - Gensoft
 
 language_tabs: # must be one of https://git.io/vQNgJ
   - shell
-  - ruby
-  - python
-  - javascript
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/lord/slate'>Documentation Powered by Slate</a>
+  - <a href='mailto:suporte@genomika.com.br'>Dúvidas ? Fale conosco</a>
 
 includes:
   - errors
@@ -17,85 +13,45 @@ includes:
 search: true
 ---
 
-# Introduction
+# Introdução
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Este documento visa apresentar a documentação de uso da API do GENSOFT. Nesta API apresentamos os endpoints necessários para estabelecer a troca de dados entre sistemas externos com o Gensoft.
 
-We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+Este protocolo está disponível para clientes externos que desejam se integrar com Gensoft. Portanto, pode ser necessário ter uma implementação externa usando estas bibliotecas aqui descritas para integração.
 
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
+Usamos como protocolo de comunicação o padrão JSON RESTful APIs, para envio e recebimento de dados.
 
-# Authentication
+# Autenticação
 
-> To authorize, use this code:
+Para envio de dados é necessário que o usuário tenha uma API key. Gensoft usa chaves para acesso à API. Para ter uma API key, é necessário falar com nosso [time técnico da Genomika](mailto:suporte@genomika.com.br).
 
-```ruby
-require 'kittn'
+O Gensoft necessita que o API key seja inclusa em todas requisições de API ao servidor dentro do cabeçalho (header) conforme o exemplo abaixo:
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
+`Authorization: meowmeowmeow`
 
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-```
 
 ```shell
-# With shell, you can just pass the correct header with each request
+# Via shell, você pode passar o header correto para cada requisição
 curl "api_endpoint_here"
   -H "Authorization: meowmeowmeow"
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-```
-
-> Make sure to replace `meowmeowmeow` with your API key.
-
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
-
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+Não esqueça de substituir o  <code>meowmeowmeow</code> com a API Key fornecida a você.
 </aside>
 
-# Kittens
 
-## Get All Kittens
+# Passagem ou Pedido
 
-```ruby
-require 'kittn'
+## Envio de Dados
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
 
 ```shell
-curl "http://example.com/api/kittens"
+curl "http://our_url/api/v1/attendance/"
   -H "Authorization: meowmeowmeow"
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+> O comando acima retorna o seguinte JSON estruturado:
 
 ```json
 [
@@ -116,124 +72,89 @@ let kittens = api.kittens.get();
 ]
 ```
 
-This endpoint retrieves all kittens.
+Este endpoint permite o envio para o Gensoft os dados do atendimento cadastrados, junto com os dados do paciente, dados do procedimentos, de amostras requisitadas, solicitantes e arquivos em anexo e dados clínicos.
+
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`POST http://our_url/api/v1/attendance/`
 
-### Query Parameters
+### Headers
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+`Content-Type: application/json`
+
+`Authorization: ApiKey`
+
+### Parâmetros da Requisição
+
+Deverá ser enviado como corpo da requisição 
+
+Parâmetro | Descrição
+--------- | -----------
+ID | O ID da execução que deseja realizar o upload do laudo em formato PDF.
+
+### Momento de Execução
+
+Este evento deverá ser chamados nos seguintes estágios:
+
+- Quando um novo atendimento é criado pela primeira vez.
+- Quando houver cancelamento do atendimento completo.
+- Quando houver bloqueio do atendimento completo.
+- Quando houver atualização dos anexos e dados clínicos.
+- Quando houver atualização de exames (exclusão e/ou adição)
 
 <aside class="success">
-Remember — a happy kitten is an authenticated kitten!
+Será criado um novo atendimento no Gensoft ou se for no caso de atualização ou cancelamento a operação desejada será realizada no Gensoft. Recomenda-se que o envio seja feito logo após que o atendimento não tenha pendências financeiras, ou seja seja de fato um atendimento criado com sucesso.
 </aside>
 
-## Get a Specific Kitten
 
-```ruby
-require 'kittn'
+# Laudos
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
+## Realizar Upload de Laudo
 
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
-```
 
 ```shell
-curl "http://example.com/api/kittens/2"
+curl "http://our_url/api/v1/results/upload/execution/10"
   -H "Authorization: meowmeowmeow"
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
+> O comando acima retorna o seguinte JSON estruturado:
 
 ```json
-{
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
-}
+[
+  {
+    "id": 1,
+    "name": "Fluffums",
+    "breed": "calico",
+    "fluffiness": 6,
+    "cuteness": 7
+  },
+  {
+    "id": 2,
+    "name": "Max",
+    "breed": "unknown",
+    "fluffiness": 5,
+    "cuteness": 10
+  }
+]
 ```
 
-This endpoint retrieves a specific kitten.
-
-<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
+Este endpoint permite o upload do laudo em formato PDF para o resultado da execução especificada em parâmetro. Execução no Gensoft, significa a instância do exame daquele paciente em execução no laboratório.
 
 ### HTTP Request
 
-`GET http://example.com/kittens/<ID>`
+`PUT http://our_url/api/v1/results/upload/execution/`
 
-### URL Parameters
+### Parâmetros da Requisição
 
-Parameter | Description
+Parâmetro | Descrição
 --------- | -----------
-ID | The ID of the kitten to retrieve
+ID | O ID da execução que deseja realizar o upload do laudo em formato PDF.
 
-## Delete a Specific Kitten
+### Momento de Execução
 
-```ruby
-require 'kittn'
+Este evento deverá ser chamado no momento em que um laudo é liberado no LMS de liberação de laudos. Assim que chamado será enviado um PDF do laudo liberado a execução do exame identificado. Caso haja já um laudo, ele irá substituir o anterior, colocando este como nova versão mais atualizada.
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
-```
-
-```shell
-curl "http://example.com/api/kittens/2"
-  -X DELETE
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
-
-```json
-{
-  "id": 2,
-  "deleted" : ":("
-}
-```
-
-This endpoint deletes a specific kitten.
-
-### HTTP Request
-
-`DELETE http://example.com/kittens/<ID>`
-
-### URL Parameters
-
-Parameter | Description
---------- | -----------
-ID | The ID of the kitten to delete
-
+<aside class="success">
+O laudo atualizado terá como nome no Gensoft o seguinte rótulo:  xxxx
+</aside>
